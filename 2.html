@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tặng bé nè 💙</title>
+  <!--
+  ===================== HƯỚNG DẪN TUỲ BIẾN =====================
+  1) HÌNH NỀN:
+     - Đổi URL trong biến --bg-url bên dưới.
+  2) STICKER:
+     - Thay src của các <img class="sticker"> (cả ở màn hộp quà và màn lời chúc) bằng ảnh sticker bạn muốn.
+  3) ẢNH KỈ NIỆM (SLIDESHOW):
+     - Thay các URL trong mảng const IMAGES = [ ... ] ở phần <script>.
+  4) LỜI CHÚC:
+     - Thay các dòng trong const WISH_LINES = [ ... ].
+  5) MÀU SẮC TRÁI TIM:
+     - Trái tim 2D trong suốt, viền xanh dương. Có hiệu ứng "galaxy" nhạt chạy trên viền.
+  6) NẾU DÙNG TRÊN ĐIỆN THOẠI:
+     - Nút "Không" sẽ tự chạy trốn cả khi chạm.
+  ==============================================================
+  -->
+  <style>
+    :root {
+      /* 👉 ĐỔI LINK HÌNH NỀN TẠI ĐÂY */
+      --bg-url: url('https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=1920&auto=format&fit=crop');
+      --blue: #1e90ff;
+      --blue-2: #66b3ff;
+      --box-pink: #ff7ac6;
+      --box-purple: #a27bff;
+      --glass: rgba(255,255,255,0.12);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: #fff; overflow: hidden;
+      background-image: var(--bg-url);
+      background-size: cover; background-position: center; background-attachment: fixed;
+    }
+    /* Overlay kỹ thuật số nhẹ */
+    body::before {
+      content: ""; position: fixed; inset: 0;
+      background: radial-gradient(60vw 60vh at 10% 15%, rgba(30,144,255,.18), transparent 60%),
+                  radial-gradient(40vw 40vh at 90% 85%, rgba(162,123,255,.18), transparent 60%),
+                  linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+
+    .screen { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; }
+    .hide { display: none !important; }
+
+    /* ====== MÀN 1: CÂU HỎI ====== */
+    .card {
+      background: rgba(0,0,0,.35);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.2);
+      padding: 28px; border-radius: 20px; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      max-width: 560px; width: min(92vw, 560px);
+    }
+    h1 { margin: 0 0 12px; font-size: clamp(24px, 4vw, 36px); }
+    p.lead { margin: 0 0 18px; opacity: .85; }
+
+    .btns { display: flex; gap: 12px; justify-content: center; position: relative; height: 48px; }
+    .btn {
+      position: relative; padding: 12px 20px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.35); color: #fff; cursor: pointer;
+      background: linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.06));
+      backdrop-filter: blur(4px); font-weight: 600; user-select: none;
+      transition: transform .15s ease, background .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { border-color: var(--blue); box-shadow: 0 6px 20px rgba(30,144,255,.35); }
+
+    /* Nút Không chạy trốn */
+    .btn-escape { position: absolute; }
+
+    /* ====== MÀN 2: HỘP QUÀ ====== */
+    .gift-area { position: relative; width: min(92vw, 680px); height: min(70vh, 520px); }
+    .title {
+      position: absolute; top: -10px; left: 50%; transform: translate(-50%, -100%);
+      font-size: clamp(22px, 5vw, 42px); font-weight: 800; letter-spacing: .5px;
+      text-shadow: 0 6px 30px rgba(0,0,0,.5), 0 0 20px rgba(102,179,255,.5);
+    }
+    .gift {
+      --w: min(70vw, 420px);
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: var(--w); height: calc(var(--w) * 0.8);
+      display: grid; place-items: center; cursor: pointer;
+    }
+    .box { position: relative; width: 100%; height: 75%; margin-top: 8%;
+      background: linear-gradient(135deg, var(--box-pink), var(--box-purple));
+      border-radius: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.45);
+      border: 2px solid rgba(255,255,255,.35);
+    }
+    .ribbon { position: absolute; inset: 0; }
+    .ribbon::before, .ribbon::after {
+      content: ""; position: absolute; background: linear-gradient(180deg, #fff, rgba(255,255,255,.6));
+    }
+    .ribbon::before { width: 10%; left: 45%; top: 0; bottom: 0; }
+    .ribbon::after { height: 16%; top: 42%; left: 0; right: 0; }
+
+    .lid { position: absolute; width: 112%; height: 28%; left: -6%; top: -12%;
+      background: linear-gradient(135deg, var(--box-purple), var(--box-pink));
+      border-radius: 16px; border: 2px solid rgba(255,255,255,.45);
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+      transform-origin: 20% 110%; transition: transform .8s cubic-bezier(.2,.8,.2,1), translate .8s;
+    }
+    .gift.open .lid { transform: rotate(-28deg) translateY(-18%) translateX(-2%); }
+
+    .tag-bow { position: absolute; top: -22%; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; }
+    .bow { width: clamp(36px, 8vw, 72px); height: clamp(28px, 6vw, 48px); border: 3px solid #fff; border-radius: 999px; }
+    .tag { background: #fff; color: #111; padding: 6px 12px; border-radius: 999px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+
+    .tip { position: absolute; bottom: 6%; left: 50%; transform: translateX(-50%); opacity: .85; font-size: .95rem; }
+
+    /* Sticker dễ thương quanh hộp */
+    .sticker { position: absolute; width: clamp(40px, 10vw, 90px); filter: drop-shadow(0 8px 24px rgba(0,0,0,.35)); user-select: none; }
+    .sticker.s1 { top: 8%; left: 6%; transform: rotate(-12deg); }
+    .sticker.s2 { top: 0%; right: 8%; transform: rotate(10deg); }
+    .sticker.s3 { bottom: 6%; left: 10%; transform: rotate(8deg); }
+    .sticker.s4 { bottom: 4%; right: 12%; transform: rotate(-10deg); }
+
+    /* ====== MÀN 3: SLIDESHOW + TIM ====== */
+    .stage { position: absolute; inset: 0; display: grid; place-items: center; }
+    .slide {
+      position: absolute; inset: 0; display: grid; place-items: center;
+      opacity: 0; transition: opacity .8s ease;
+    }
+    .slide.show { opacity: 1; }
+    .slide img { max-width: 86vw; max-height: 72vh; width: auto; height: auto; border-radius: 18px; border: 2px solid rgba(255,255,255,.5); box-shadow: 0 30px 80px rgba(0,0,0,.5); object-fit: cover; }
+
+    /* Trái tim 2D trong suốt, viền xanh + hiệu ứng galaxy */
+    .heart { position: absolute; width: 24px; height: 24px; pointer-events: none; opacity: .9; animation: floatUp linear forwards; }
+    @keyframes floatUp { from { transform: translateY(0) scale(1); opacity: .95; } to { transform: translateY(-120vh) scale(1.2); opacity: 0; } }
+
+    /* ====== MÀN 4: LỜI CHÚC ====== */
+    .wishes { max-width: 900px; width: min(92vw, 900px); margin: 0 auto; text-align: center; }
+    .wish-line { font-size: clamp(18px, 3.2vw, 28px); margin: 10px 0; opacity: 0; transform: translateY(8px); transition: opacity .5s ease, transform .5s ease; }
+    .wish-line.show { opacity: 1; transform: translateY(0); }
+    .w-sticker { position: absolute; width: clamp(36px, 8vw, 80px); filter: drop-shadow(0 8px 24px rgba(0,0,0,.35)); }
+
+    /* Nút điều khiển nhỏ khi cần */
+    .controls { position: fixed; right: 12px; bottom: 12px; display: flex; gap: 8px; }
+    .chip { background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.25); padding: 8px 12px; border-radius: 999px; cursor: pointer; }
+
+    /* Hiệu ứng click lấp lánh nhẹ */
+    .spark { position: fixed; width: 10px; height: 10px; border-radius: 50%; background: #fff; pointer-events: none; opacity: 0; animation: spark .6s ease-out; }
+    @keyframes spark { 0%{ transform: scale(.3); opacity: .9;} 80%{ opacity:.6;} 100%{ transform: scale(8); opacity: 0;} }
+  </style>
+</head>
+<body>
+
+  <!-- ===== MÀN 1: CÂU HỎI ===== -->
+  <section id="q-screen" class="screen">
+    <div class="card">
+      <h1>Em có yêu anh không? 💞</h1>
+      <p class="lead">Trả lời thật lòng nhaaa ~</p>
+      <div class="btns" id="btn-wrap" style="width: 100%;">
+        <button id="yesBtn" class="btn primary">Có 💙</button>
+        <button id="noBtn" class="btn btn-escape">Không ❌</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MÀN 2: HỘP QUÀ ===== -->
+  <section id="gift-screen" class="screen hide">
+    <div class="gift-area">
+      <div class="title">Tặng bé nè 🎁</div>
+      <div class="gift" id="gift">
+        <div class="lid"></div>
+        <div class="box">
+          <div class="ribbon"></div>
+        </div>
+        <div class="tag-bow">
+          <div class="bow"></div>
+          <div class="tag">Mở ra nhé!</div>
+        </div>
+      </div>
+      <div class="tip">(Chạm/click vào hộp quà để mở)</div>
+
+      <!-- Sticker: THAY ảnh theo ý bạn -->
+      <img class="sticker s1" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f43b.svg" alt="sticker"/>
+      <img class="sticker s2" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2728.svg" alt="sticker"/>
+      <img class="sticker s3" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f60d.svg" alt="sticker"/>
+      <img class="sticker s4" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f496.svg" alt="sticker"/>
+    </div>
+  </section>
+
+  <!-- ===== MÀN 3: SLIDESHOW ===== -->
+  <section id="slide-screen" class="screen hide">
+    <div class="stage" id="stage"></div>
+  </section>
+
+  <!-- ===== MÀN 4: LỜI CHÚC ===== -->
+  <section id="wish-screen" class="screen hide">
+    <div class="wishes" id="wishes"></div>
+    <!-- Sticker trang trí quanh lời chúc (TUỲ THAY URL) -->
+    <img class="w-sticker" style="top:8%; left:6%; transform: rotate(-14deg);" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f497.svg" alt="sticker"/>
+    <img class="w-sticker" style="top:10%; right:8%; transform: rotate(10deg);" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f338.svg" alt="sticker"/>
+    <img class="w-sticker" style="bottom:10%; left:10%; transform: rotate(6deg);" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f31f.svg" alt="sticker"/>
+    <img class="w-sticker" style="bottom:8%; right:12%; transform: rotate(-10deg);" src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f499.svg" alt="sticker"/>
+  </section>
+
+  <!-- SVG defs cho trái tim (stroke xanh + gradient galaxy động) -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="galaxyStroke" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#1e90ff">
+          <animate attributeName="offset" values="0;1;0" dur="6s" repeatCount="indefinite" />
+        </stop>
+        <stop offset="100%" stop-color="#66b3ff">
+          <animate attributeName="offset" values="1;0;1" dur="6s" repeatCount="indefinite" />
+        </stop>
+      </linearGradient>
+      <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="1.8" result="glow"/>
+        <feMerge>
+          <feMergeNode in="glow"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <symbol id="heart" viewBox="0 0 32 29">
+        <!-- Path trái tim tiêu chuẩn -->
+        <path d="M23.6,0c-2.7,0-5.1,1.4-7.6,4.3C13.5,1.4,11.1,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.5,16,20.6,16,20.6S32,17.9,32,8.4 C32,3.8,28.2,0,23.6,0z" fill="transparent" stroke="url(#galaxyStroke)" stroke-width="2.4" filter="url(#softGlow)"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="controls" aria-hidden="true">
+    <div id="restart" class="chip">↺ Chơi lại</div>
+  </div>
+
+  <script>
+    // ========= TUỲ CHỈNH NỘI DUNG =========
+    // 👉 Thay ảnh kỉ niệm ở đây
+    const IMAGES = [
+      // Thay các URL bằng ảnh của bạn
+      'https://images.unsplash.com/photo-1514790193030-c89d266d5a9d?q=80&w=1600&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?q=80&w=1600&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?q=80&w=1600&auto=format&fit=crop'
+    ];
+    // 👉 Thay các dòng lời chúc ở đây
+    const WISH_LINES = [
+      'Bé là điều tuyệt vời nhất trong ngày của anh 💙',
+      'Cảm ơn bé vì đã đến bên anh.',
+      'Chúc bé luôn vui, luôn cười thật tươi!',
+      'Mãi thương bé. — Anh'
+    ];
+
+    // ========= TIỆN ÍCH =========
+    const $ = sel => document.querySelector(sel);
+    const rand = (min, max) => Math.random() * (max - min) + min;
+
+    // ===== MÀN 1: CÂU HỎI =====
+    const qScreen = $('#q-screen');
+    const btnWrap = $('#btn-wrap');
+    const yesBtn = $('#yesBtn');
+    const noBtn = $('#noBtn');
+
+    function placeNoBtnRandom() {
+      const wrapRect = btnWrap.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+      const pad = 6;
+      const maxX = wrapRect.width - btnRect.width - pad;
+      const maxY = wrapRect.height - btnRect.height - pad;
+      const x = rand(pad, Math.max(pad, maxX));
+      const y = rand(pad, Math.max(pad, maxY));
+      noBtn.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    ['mouseenter','pointerdown','mouseover','touchstart'].forEach(evt => {
+      noBtn.addEventListener(evt, (e) => {
+        e.preventDefault();
+        placeNoBtnRandom();
+      }, { passive: false });
+    });
+
+    yesBtn.addEventListener('click', () => {
+      qScreen.classList.add('hide');
+      $('#gift-screen').classList.remove('hide');
+      burstSpark();
+    });
+
+    // ===== MÀN 2: HỘP QUÀ =====
+    const gift = $('#gift');
+    let giftOpened = false;
+    gift.addEventListener('click', () => {
+      if (giftOpened) return;
+      giftOpened = true;
+      gift.classList.add('open');
+      burstSpark();
+      // đợi nắp mở rồi chuyển sang slideshow
+      setTimeout(() => {
+        $('#gift-screen').classList.add('hide');
+        startSlideshow();
+      }, 900);
+    });
+
+    // ===== MÀN 3: SLIDESHOW + TIM =====
+    const stage = $('#stage');
+    let slideIndex = 0; let slideTimer = null;
+
+    function startSlideshow() {
+      $('#slide-screen').classList.remove('hide');
+      stage.innerHTML = '';
+      slideIndex = 0;
+      showSlide(slideIndex);
+      spawnHeartsLoop();
+    }
+
+    function showSlide(i) {
+      stage.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.className = 'slide show';
+      const img = document.createElement('img');
+      img.src = IMAGES[i];
+      img.alt = 'Ảnh kỉ niệm';
+      wrap.appendChild(img);
+      stage.appendChild(wrap);
+      // mỗi slide 2.8s
+      clearTimeout(slideTimer);
+      slideTimer = setTimeout(() => {
+        slideIndex++;
+        if (slideIndex < IMAGES.length) {
+          showSlide(slideIndex);
+        } else {
+          // xong slideshow ➜ lời chúc
+          setTimeout(startWishes, 600);
+        }
+      }, 2800);
+    }
+
+    // Tim nổi: tạo trái tim SVG (fill trong suốt, stroke xanh + galaxy)
+    function makeHeart(x, y, scale = 1) {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      el.setAttribute('class', 'heart');
+      el.setAttribute('width', 32 * scale);
+      el.setAttribute('height', 29 * scale);
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.animationDuration = rand(4.5, 9) + 's';
+      el.style.transform = `translateY(0) scale(${scale})`;
+      el.innerHTML = '<use href="#heart" />';
+      document.body.appendChild(el);
+      // tự xoá khi kết thúc
+      setTimeout(() => el.remove(), parseFloat(el.style.animationDuration) * 1000);
+    }
+
+    function spawnHeartsLoop() {
+      const make = () => {
+        const x = rand(20, window.innerWidth - 20);
+        const y = window.innerHeight + 10; // bắt đầu dưới đáy
+        const s = rand(.7, 1.8);
+        makeHeart(x, y, s);
+        // nhịp tim: nhanh chậm ngẫu nhiên
+        setTimeout(make, rand(180, 420));
+      };
+      make();
+    }
+
+    // ===== MÀN 4: LỜI CHÚC =====
+    function startWishes() {
+      $('#slide-screen').classList.add('hide');
+      const box = $('#wishes');
+      box.innerHTML = '';
+      $('#wish-screen').classList.remove('hide');
+      let i = 0;
+      const next = () => {
+        if (i >= WISH_LINES.length) return;
+        const line = document.createElement('div');
+        line.className = 'wish-line';
+        line.textContent = WISH_LINES[i++];
+        box.appendChild(line);
+        requestAnimationFrame(() => line.classList.add('show'));
+        setTimeout(next, 1500);
+      };
+      next();
+      // rải thêm tim cho lãng mạn
+      const rain = setInterval(() => {
+        makeHeart(rand(0, window.innerWidth), window.innerHeight + 10, rand(.6, 1.4));
+      }, 260);
+      // dừng rải sau 15s
+      setTimeout(() => clearInterval(rain), 15000);
+    }
+
+    // ===== Hiệu ứng lấp lánh khi chuyển cảnh =====
+    function burstSpark() {
+      for (let i = 0; i < 16; i++) {
+        const s = document.createElement('div');
+        s.className = 'spark';
+        s.style.left = rand(20, window.innerWidth - 20) + 'px';
+        s.style.top  = rand(20, window.innerHeight - 20) + 'px';
+        document.body.appendChild(s);
+        setTimeout(() => s.remove(), 600);
+      }
+    }
+
+    // ===== NÚT CHƠI LẠI =====
+    $('#restart').addEventListener('click', () => {
+      clearTimeout(slideTimer);
+      // reset
+      giftOpened = false; gift.classList.remove('open');
+      $('#wish-screen').classList.add('hide');
+      $('#slide-screen').classList.add('hide');
+      $('#gift-screen').classList.add('hide');
+      $('#q-screen').classList.remove('hide');
+      noBtn.style.transform = 'translate(0,0)';
+      burstSpark();
+    });
+
+    // Đặt vị trí ban đầu cho nút KHÔNG (để tăng độ troll 😆)
+    window.addEventListener('load', placeNoBtnRandom);
+    window.addEventListener('resize', () => {
+      // giữ nút trong khung khi đổi kích thước
+      placeNoBtnRandom();
+    });
+  </script>
+</body>
+</html>
